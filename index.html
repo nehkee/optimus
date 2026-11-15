@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Potatohead</title>
+  <meta name="description" content="Spud, the singing potato.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <h1>Potatohead</h1>
+    <p class="tagline">Meet Spud. Spud sings.</p>
+
+    <div class="stage">
+      <div class="notes" id="notes" aria-hidden="true"></div>
+      <svg id="potato" viewBox="0 0 300 340" role="img" aria-label="A cartoon potato with big eyes and a singing mouth">
+        <!-- shadow -->
+        <ellipse cx="150" cy="320" rx="95" ry="12" class="shadow"/>
+        <g id="body">
+          <!-- potato body -->
+          <path class="skin" d="M150 20 C230 18 275 90 268 170 C262 250 225 305 150 308 C78 311 32 255 30 175 C28 95 72 22 150 20 Z"/>
+          <!-- spots -->
+          <circle class="spot" cx="85" cy="110" r="6"/>
+          <circle class="spot" cx="225" cy="95" r="4"/>
+          <circle class="spot" cx="240" cy="210" r="7"/>
+          <circle class="spot" cx="70" cy="230" r="5"/>
+          <circle class="spot" cx="180" cy="270" r="4"/>
+          <circle class="spot" cx="120" cy="60" r="3.5"/>
+          <!-- cheeks -->
+          <ellipse class="cheek" cx="88" cy="185" rx="18" ry="10"/>
+          <ellipse class="cheek" cx="212" cy="185" rx="18" ry="10"/>
+          <!-- eyes -->
+          <g class="eye" id="eyeL">
+            <ellipse cx="112" cy="135" rx="20" ry="24" fill="#fff"/>
+            <circle class="pupil" cx="115" cy="140" r="10"/>
+            <circle cx="119" cy="135" r="3.5" fill="#fff"/>
+          </g>
+          <g class="eye" id="eyeR">
+            <ellipse cx="188" cy="135" rx="20" ry="24" fill="#fff"/>
+            <circle class="pupil" cx="185" cy="140" r="10"/>
+            <circle cx="189" cy="135" r="3.5" fill="#fff"/>
+          </g>
+          <!-- brows -->
+          <path class="brow" id="browL" d="M92 102 Q112 92 130 100"/>
+          <path class="brow" id="browR" d="M170 100 Q188 92 208 102"/>
+          <!-- mouth -->
+          <g id="mouth" transform="translate(150 210)">
+            <ellipse id="mouthOpen" class="mouth" cx="0" cy="0" rx="22" ry="4"/>
+            <ellipse id="tongue" class="tongue" cx="0" cy="3" rx="12" ry="0"/>
+          </g>
+        </g>
+      </svg>
+      <p class="lyric" id="lyric" aria-live="polite">&nbsp;</p>
+    </div>
+
+    <button id="sing" type="button">▶ Make Spud sing</button>
+    <p class="hint">Turn your sound on.</p>
+  </main>
+
+  <footer>Potatohead — a small static site.</footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

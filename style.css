@@ -1,0 +1,136 @@
+:root {
+  --bg: #fdf3e1;
+  --bg2: #f6dfb6;
+  --ink: #3b2614;
+  --muted: #7a5a3a;
+  --skin: #c99a5b;
+  --skin-edge: #8a6131;
+  --spot: #a37940;
+  --cheek: #e8897a;
+  --mouth: #4a1a12;
+  --tongue: #e0605a;
+  --accent: #d2552f;
+  --accent-ink: #fff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1d1712;
+    --bg2: #2a2018;
+    --ink: #f6e8d2;
+    --muted: #c3a988;
+    --accent: #ef7a4f;
+    --accent-ink: #1d1712;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 30%, var(--bg) 0%, var(--bg2) 100%);
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif;
+  text-align: center;
+}
+
+main {
+  flex: 1;
+  padding: 32px 16px 16px;
+  max-width: 640px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(2.2rem, 8vw, 3.6rem);
+  letter-spacing: 0.02em;
+}
+
+.tagline { margin: 6px 0 12px; color: var(--muted); font-size: 1.1rem; }
+
+.stage { position: relative; }
+
+#potato {
+  width: min(320px, 80vw);
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+#body { transform-origin: 150px 308px; }
+.singing #body { animation: sway 0.9s ease-in-out infinite alternate; }
+
+@keyframes sway {
+  from { transform: rotate(-4deg); }
+  to   { transform: rotate(4deg); }
+}
+
+.skin  { fill: var(--skin); stroke: var(--skin-edge); stroke-width: 4; }
+.spot  { fill: var(--spot); opacity: 0.7; }
+.cheek { fill: var(--cheek); opacity: 0.55; }
+.pupil { fill: #2a1a0e; }
+.brow  { fill: none; stroke: #5a3a1c; stroke-width: 5; stroke-linecap: round; transition: transform 0.2s; }
+.mouth { fill: var(--mouth); }
+.tongue { fill: var(--tongue); }
+.shadow { fill: #000; opacity: 0.12; }
+
+.singing #browL { transform: translateY(-6px); }
+.singing #browR { transform: translateY(-6px); }
+
+.eye { transform-box: fill-box; transform-origin: center; animation: blink 4s infinite; }
+@keyframes blink {
+  0%, 94%, 100% { transform: scaleY(1); }
+  97% { transform: scaleY(0.1); }
+}
+
+.notes { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+.note {
+  position: absolute;
+  font-size: 1.8rem;
+  color: var(--accent);
+  animation: float 2s ease-out forwards;
+}
+@keyframes float {
+  from { opacity: 1; transform: translate(0, 0) rotate(0); }
+  to   { opacity: 0; transform: translate(var(--dx), -140px) rotate(var(--rot)); }
+}
+
+.lyric {
+  min-height: 1.6em;
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin: 8px 0 16px;
+}
+
+button {
+  font: inherit;
+  font-size: 1.15rem;
+  font-weight: bold;
+  padding: 14px 28px;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+  transition: transform 0.1s;
+}
+button:hover { transform: translateY(-2px); }
+button:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2); }
+button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+.hint { color: var(--muted); font-size: 0.9rem; }
+
+footer { padding: 16px; color: var(--muted); font-size: 0.85rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  .singing #body, .eye, .note { animation: none; }
+}
