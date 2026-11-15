@@ -11,6 +11,7 @@
   --tongue: #e0605a;
   --accent: #d2552f;
   --accent-ink: #fff;
+  --panel: rgba(255, 255, 255, 0.55);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +22,7 @@
     --muted: #c3a988;
     --accent: #ef7a4f;
     --accent-ink: #1d1712;
+    --panel: rgba(255, 255, 255, 0.06);
   }
 }
 
@@ -134,3 +136,54 @@ footer { padding: 16px; color: var(--muted); font-size: 0.85rem; }
 @media (prefers-reduced-motion: reduce) {
   .singing #body, .eye, .note { animation: none; }
 }
+
+/* ---- v2 additions ---- */
+.song-title { margin: 6px 0 0; color: var(--muted); font-style: italic; min-height: 1.2em; }
+.lyric .w { transition: color 0.1s; }
+.lyric .w.on { color: var(--accent); }
+
+.controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+button.secondary {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+.voice { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 12px; font-size: 0.95rem; }
+.voice input { accent-color: var(--accent); }
+
+.panel {
+  margin: 20px auto 0;
+  text-align: left;
+  background: var(--panel);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.08);
+}
+.tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.tabs button {
+  flex: 1;
+  font-size: 1rem;
+  padding: 10px 8px;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+  border-radius: 12px;
+}
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.panel label { display: block; font-weight: bold; margin: 8px 0 6px; }
+.panel input, .panel textarea {
+  width: 100%;
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 2px solid var(--muted);
+  background: var(--bg);
+  color: var(--ink);
+}
+.panel textarea { resize: vertical; }
+.panel form > button { margin-top: 12px; width: 100%; }
+.row { display: flex; gap: 8px; }
+.row input { flex: 1; min-width: 0; }
+.row button { padding: 10px 18px; flex-shrink: 0; }
+.small { font-size: 0.85rem; color: var(--muted); margin: 10px 0 0; }
+button:disabled { opacity: 0.6; cursor: wait; transform: none; }

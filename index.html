@@ -4,61 +4,89 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Potatohead</title>
-  <meta name="description" content="Spud, the singing potato.">
+  <meta name="description" content="Spud, the singing potato. Give Spud a topic or your own lyrics and hear it sing.">
+  <meta property="og:title" content="Spud the singing potato 🥔">
+  <meta property="og:description" content="Give Spud a topic or your own lyrics and hear it sing.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
     <h1>Potatohead</h1>
-    <p class="tagline">Meet Spud. Spud sings.</p>
+    <p class="tagline">Meet Spud. Spud sings whatever you want.</p>
 
     <div class="stage">
       <div class="notes" id="notes" aria-hidden="true"></div>
-      <svg id="potato" viewBox="0 0 300 340" role="img" aria-label="A cartoon potato with big eyes and a singing mouth">
-        <!-- shadow -->
+      <svg id="potato" viewBox="0 0 300 340" role="img" aria-label="Spud, a cartoon potato with big eyes and a singing mouth">
         <ellipse cx="150" cy="320" rx="95" ry="12" class="shadow"/>
         <g id="body">
-          <!-- potato body -->
           <path class="skin" d="M150 20 C230 18 275 90 268 170 C262 250 225 305 150 308 C78 311 32 255 30 175 C28 95 72 22 150 20 Z"/>
-          <!-- spots -->
           <circle class="spot" cx="85" cy="110" r="6"/>
           <circle class="spot" cx="225" cy="95" r="4"/>
           <circle class="spot" cx="240" cy="210" r="7"/>
           <circle class="spot" cx="70" cy="230" r="5"/>
           <circle class="spot" cx="180" cy="270" r="4"/>
           <circle class="spot" cx="120" cy="60" r="3.5"/>
-          <!-- cheeks -->
           <ellipse class="cheek" cx="88" cy="185" rx="18" ry="10"/>
           <ellipse class="cheek" cx="212" cy="185" rx="18" ry="10"/>
-          <!-- eyes -->
-          <g class="eye" id="eyeL">
+          <g class="eye">
             <ellipse cx="112" cy="135" rx="20" ry="24" fill="#fff"/>
             <circle class="pupil" cx="115" cy="140" r="10"/>
             <circle cx="119" cy="135" r="3.5" fill="#fff"/>
           </g>
-          <g class="eye" id="eyeR">
+          <g class="eye">
             <ellipse cx="188" cy="135" rx="20" ry="24" fill="#fff"/>
             <circle class="pupil" cx="185" cy="140" r="10"/>
             <circle cx="189" cy="135" r="3.5" fill="#fff"/>
           </g>
-          <!-- brows -->
           <path class="brow" id="browL" d="M92 102 Q112 92 130 100"/>
           <path class="brow" id="browR" d="M170 100 Q188 92 208 102"/>
-          <!-- mouth -->
-          <g id="mouth" transform="translate(150 210)">
+          <g transform="translate(150 210)">
             <ellipse id="mouthOpen" class="mouth" cx="0" cy="0" rx="22" ry="4"/>
             <ellipse id="tongue" class="tongue" cx="0" cy="3" rx="12" ry="0"/>
           </g>
         </g>
       </svg>
+      <p class="song-title" id="songTitle"></p>
       <p class="lyric" id="lyric" aria-live="polite">&nbsp;</p>
     </div>
 
-    <button id="sing" type="button">▶ Make Spud sing</button>
-    <p class="hint">Turn your sound on.</p>
+    <div class="controls">
+      <button id="sing" type="button" class="primary">▶ Make Spud sing</button>
+      <button id="share" type="button" class="secondary" hidden>🔗 Share this song</button>
+    </div>
+    <div class="voice" role="radiogroup" aria-label="Spud's voice">
+      <label><input type="radio" name="voice" value="words" checked> Sing the words</label>
+      <label><input type="radio" name="voice" value="hum"> Just hum the tune</label>
+    </div>
+    <p class="hint" id="status">Turn your sound on.</p>
+
+    <section class="panel">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tabAi" aria-selected="true" aria-controls="paneAi">🥔 Spud writes it</button>
+        <button role="tab" id="tabMine" aria-selected="false" aria-controls="paneMine">✍️ I write it</button>
+      </div>
+
+      <form id="paneAi" role="tabpanel" aria-labelledby="tabAi">
+        <label for="topic">Potato, sing me a song about…</label>
+        <div class="row">
+          <input id="topic" maxlength="120" placeholder="tomatoes, my cat, Monday mornings…" autocomplete="off" required>
+          <button type="submit" class="primary" id="writeBtn">Write it</button>
+        </div>
+        <p class="small">Spud writes an original song with AI. Spud won't copy famous songs, but it can write in their style.</p>
+      </form>
+
+      <form id="paneMine" role="tabpanel" aria-labelledby="tabMine" hidden>
+        <label for="myTitle">Song title</label>
+        <input id="myTitle" maxlength="60" placeholder="My Great Song">
+        <label for="myLyrics">Lyrics (one line per line)</label>
+        <textarea id="myLyrics" rows="6" maxlength="1500" placeholder="Happy birthday dear Sarah&#10;you are older than a potato" required></textarea>
+        <button type="submit" class="primary">Teach Spud this song</button>
+        <p class="small">Please only use lyrics you wrote yourself.</p>
+      </form>
+    </section>
   </main>
 
-  <footer>Potatohead — a small static site.</footer>
+  <footer>Potatohead 🥔 Songs are made up on the spot. Be kind to Spud.</footer>
 
   <script src="script.js"></script>
 </body>
