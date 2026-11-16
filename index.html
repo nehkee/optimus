@@ -17,39 +17,66 @@
     <div class="stage" id="stage">
       <div class="lights" aria-hidden="true"></div>
       <div class="notes" id="notes" aria-hidden="true"></div>
-      <svg id="potato" viewBox="0 0 300 340" role="img" aria-label="Spud, a cartoon potato with big eyes and a singing mouth">
+      <svg id="potato" viewBox="0 0 300 340" role="img" aria-label="Spud, a cartoon potato holding a microphone">
         <ellipse cx="150" cy="320" rx="95" ry="12" class="shadow"/>
         <g id="body">
-          <path class="skin" d="M150 20 C230 18 275 90 268 170 C262 250 225 305 150 308 C78 311 32 255 30 175 C28 95 72 22 150 20 Z"/>
-          <circle class="spot" cx="85" cy="110" r="6"/>
-          <circle class="spot" cx="225" cy="95" r="4"/>
-          <circle class="spot" cx="240" cy="210" r="7"/>
-          <circle class="spot" cx="70" cy="230" r="5"/>
-          <circle class="spot" cx="180" cy="270" r="4"/>
-          <circle class="spot" cx="120" cy="60" r="3.5"/>
-          <ellipse class="cheek" cx="88" cy="185" rx="18" ry="10"/>
-          <ellipse class="cheek" cx="212" cy="185" rx="18" ry="10"/>
-          <g class="eye">
-            <ellipse cx="112" cy="135" rx="20" ry="24" fill="#fff"/>
-            <circle class="pupil" cx="115" cy="140" r="10"/>
-            <circle cx="119" cy="135" r="3.5" fill="#fff"/>
-          </g>
-          <g class="eye">
-            <ellipse cx="188" cy="135" rx="20" ry="24" fill="#fff"/>
-            <circle class="pupil" cx="185" cy="140" r="10"/>
-            <circle cx="189" cy="135" r="3.5" fill="#fff"/>
-          </g>
-          <path class="brow" id="browL" d="M92 102 Q112 92 130 100"/>
-          <path class="brow" id="browR" d="M170 100 Q188 92 208 102"/>
-          <g transform="translate(150 210)">
-            <ellipse id="mouthOpen" class="mouth" cx="0" cy="0" rx="22" ry="4"/>
-            <ellipse id="tongue" class="tongue" cx="0" cy="3" rx="12" ry="0"/>
-          </g>
-          <!-- microphone -->
-          <g class="mic" transform="translate(196 236) rotate(-35)">
-            <rect x="-4" y="0" width="8" height="46" rx="3" fill="#2b2b2b"/>
-            <circle cx="0" cy="-6" r="13" fill="#555"/>
-            <circle cx="0" cy="-6" r="13" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3 3"/>
+          <g id="breath">
+            <!-- left arm (waves while singing) -->
+            <g id="armL">
+              <path class="arm-edge" d="M36 200 C12 198 2 172 12 150"/>
+              <path class="arm" d="M36 200 C12 198 2 172 12 150"/>
+              <g class="hand">
+                <circle cx="12" cy="144" r="12"/>
+                <ellipse cx="24" cy="140" rx="5" ry="7" transform="rotate(25 24 140)"/>
+              </g>
+            </g>
+
+            <path class="skin" d="M150 20 C230 18 275 90 268 170 C262 250 225 305 150 308 C78 311 32 255 30 175 C28 95 72 22 150 20 Z"/>
+            <circle class="spot" cx="85" cy="110" r="6"/>
+            <circle class="spot" cx="225" cy="95" r="4"/>
+            <circle class="spot" cx="240" cy="210" r="7"/>
+            <circle class="spot" cx="70" cy="230" r="5"/>
+            <circle class="spot" cx="180" cy="270" r="4"/>
+            <circle class="spot" cx="120" cy="60" r="3.5"/>
+            <ellipse class="cheek" cx="88" cy="185" rx="18" ry="10"/>
+            <ellipse class="cheek" cx="212" cy="185" rx="18" ry="10"/>
+            <g class="eye">
+              <ellipse cx="112" cy="135" rx="20" ry="24" fill="#fff"/>
+              <g class="look">
+                <circle class="pupil" cx="115" cy="140" r="10"/>
+                <circle cx="119" cy="135" r="3.5" fill="#fff"/>
+              </g>
+            </g>
+            <g class="eye">
+              <ellipse cx="188" cy="135" rx="20" ry="24" fill="#fff"/>
+              <g class="look">
+                <circle class="pupil" cx="185" cy="140" r="10"/>
+                <circle cx="189" cy="135" r="3.5" fill="#fff"/>
+              </g>
+            </g>
+            <path class="brow" id="browL" d="M92 102 Q112 92 130 100"/>
+            <path class="brow" id="browR" d="M170 100 Q188 92 208 102"/>
+            <g transform="translate(150 210)">
+              <ellipse id="mouthOpen" class="mouth" cx="0" cy="0" rx="22" ry="4"/>
+              <ellipse id="tongue" class="tongue" cx="0" cy="3" rx="12" ry="0"/>
+            </g>
+
+            <!-- right arm holding the mic up to the mouth -->
+            <g id="holdR">
+              <path class="arm-edge" d="M262 210 C292 244 270 282 226 274"/>
+              <path class="arm" d="M262 210 C292 244 270 282 226 274"/>
+              <g transform="translate(214 266) rotate(-40)">
+                <rect x="-4.5" y="-22" width="9" height="50" rx="4" fill="#2b2b2b"/>
+                <rect x="-6" y="-24" width="12" height="6" rx="2" fill="#888"/>
+                <circle cx="0" cy="-36" r="14" fill="#5a5a5a"/>
+                <circle cx="0" cy="-36" r="14" fill="none" stroke="#a9a9a9" stroke-width="2" stroke-dasharray="3 3"/>
+                <g class="hand">
+                  <ellipse cx="0" cy="6" rx="13" ry="12"/>
+                  <ellipse cx="-11" cy="-3" rx="5" ry="7"/>
+                  <path class="finger" d="M-11 2 H11 M-11 8 H11 M-10 14 H10"/>
+                </g>
+              </g>
+            </g>
           </g>
         </g>
       </svg>

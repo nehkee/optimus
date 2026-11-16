@@ -21,6 +21,7 @@ const mouth = $("mouthOpen");
 const tongue = $("tongue");
 const statusEl = $("status");
 const playBtn = $("play");
+const holdR = $("holdR");
 
 let genre = "rnb";
 let mode = "topic";
@@ -105,6 +106,8 @@ function frame(t) {
   }
   level += ((voice - 0.12) * 2.6 - level) * 0.45;
   setMouth(level);
+  // The mic hand pulls in a little on loud notes.
+  holdR.style.transform = `translate(${(-level * 3).toFixed(1)}px, ${(-level * 4).toFixed(1)}px)`;
   bassAvg = bassAvg * 0.95 + bass * 0.05;
   if (bass > bassAvg * 1.25 && bass > 0.35 && t - lastNote > 350) {
     lastNote = t;
@@ -138,6 +141,7 @@ audio.addEventListener("pause", () => {
   stage.classList.remove("singing");
   playBtn.textContent = "▶ Play";
   setMouth(0);
+  holdR.style.transform = "";
 });
 audio.addEventListener("ended", () => {
   playBtn.textContent = "↻ Play again";

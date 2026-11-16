@@ -133,9 +133,6 @@ button:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
 
 footer { padding: 16px; color: var(--muted); font-size: 0.85rem; }
 
-@media (prefers-reduced-motion: reduce) {
-  .singing #body, .eye, .note { animation: none; }
-}
 
 /* ---- real-song version ---- */
 .stage { padding-top: 8px; }
@@ -150,7 +147,32 @@ footer { padding: 16px; color: var(--muted); font-size: 0.85rem; }
 @keyframes thump { 50% { transform: scale(1.035); } }
 .working #body { animation: wiggle 0.5s ease-in-out infinite alternate; }
 @keyframes wiggle { from { transform: rotate(-2deg) translateY(0); } to { transform: rotate(2deg) translateY(-4px); } }
-.mic { transform-box: view-box; }
+/* arms, hands, life */
+.arm-edge { fill: none; stroke: var(--skin-edge); stroke-width: 11; stroke-linecap: round; }
+.arm { fill: none; stroke: var(--skin); stroke-width: 6; stroke-linecap: round; }
+.hand ellipse, .hand circle { fill: var(--skin); stroke: var(--skin-edge); stroke-width: 3; }
+.finger { fill: none; stroke: var(--skin-edge); stroke-width: 1.6; stroke-linecap: round; opacity: 0.7; }
+
+#breath { transform-origin: 150px 308px; animation: breathe 3.2s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.012, 0.985); } }
+
+#armL { transform-origin: 36px 200px; animation: armIdle 4s ease-in-out infinite; }
+@keyframes armIdle { 50% { transform: rotate(6deg); } }
+.singing #armL { animation: armWave 0.9s ease-in-out infinite alternate; }
+@keyframes armWave { from { transform: rotate(14deg); } to { transform: rotate(-28deg); } }
+.working #armL { animation: armWave 0.45s ease-in-out infinite alternate; }
+
+#holdR { transition: transform 0.08s linear; }
+#potato { position: relative; z-index: 1; }
+.notes { z-index: 2; }
+
+.look { animation: lookAround 7s ease-in-out infinite; }
+@keyframes lookAround {
+  0%, 30%, 100% { transform: translate(0, 0); }
+  38%, 50% { transform: translate(-5px, -2px); }
+  58%, 70% { transform: translate(4px, -3px); }
+}
+.singing .look { animation: none; transform: translate(-2px, -4px); }
 
 .now { margin-top: 4px; }
 .song-title { margin: 4px 0 0; font-size: 1.3rem; font-weight: bold; }
@@ -201,3 +223,7 @@ button.secondary, .btnlink.secondary {
 button.big { width: 100%; margin-top: 14px; font-size: 1.25rem; }
 .small { font-size: 0.85rem; color: var(--muted); margin: 8px 0 0; }
 button:disabled { opacity: 0.6; cursor: wait; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .singing #body, .eye, .note, #breath, #armL, .look, .singing #armL { animation: none; }
+}
