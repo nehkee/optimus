@@ -21,20 +21,13 @@ const mouth = $("mouthOpen");
 const tongue = $("tongue");
 const statusEl = $("status");
 const playBtn = $("play");
-const holdR = $("holdR");
 
 let genre = "rnb";
 let mode = "topic";
 let song = null;
 
 // ---------- face ----------
-function setMouth(open) {
-  open = Math.max(0, Math.min(1, open));
-  mouth.setAttribute("ry", 4 + open * 26);
-  mouth.setAttribute("rx", 22 - open * 4);
-  tongue.setAttribute("ry", open * 9);
-  tongue.setAttribute("cy", 3 + open * 14);
-}
+// Spud's face and body are driven by spud.js (window.Spud).
 
 function spawnNote() {
   const el = document.createElement("span");
@@ -56,8 +49,6 @@ let ctx = null;
 let analyser = null;
 let freqData = null;
 let raf = 0;
-let level = 0;
-let bassAvg = 0;
 let lastNote = 0;
 let silentFrames = 0;
 let fakeSync = false;
@@ -100,21 +91,16 @@ function frame(t) {
     silentFrames = voice + bass === 0 ? silentFrames + 1 : 0;
     if (silentFrames > 90) fakeSync = true;
   } else {
-    const beat = (t / 1000) * 2; // ~120 BPM
-    voice = 0.35 + 0.3 * Math.abs(Math.sin(beat * Math.PI * 1.5)) * (Math.sin(t / 900) > -0.6 ? 1 : 0.2);
-    bass = beat % 1 < 0.08 ? 0.9 : 0.2;
+    // Can't hear the audio: perform to the style's tempo with a made-up energy curve.
+    const beats = audio.currentTime / (60 / Spud.mood.bpm);
+    const swell = 0.55 + 0.35 * Math.sin(audio.currentTime / 4);
+    voice = (0.2 + 0.35 * Math.abs(Math.sin(beats * Math.PI * 1.5))) * swell;
+    bass = beats % 1 < 0.12 ? 0.8 * swell + 0.1 : 0.15;
   }
-  level += ((voice - 0.12) * 2.6 - level) * 0.45;
-  setMouth(level);
-  // The mic hand pulls in a little on loud notes.
-  holdR.style.transform = `translate(${(-level * 3).toFixed(1)}px, ${(-level * 4).toFixed(1)}px)`;
-  bassAvg = bassAvg * 0.95 + bass * 0.05;
-  if (bass > bassAvg * 1.25 && bass > 0.35 && t - lastNote > 350) {
+  const { onBeat } = Spud.perform(t, voice, bass, audio.currentTime);
+  if (onBeat && t - lastNote > 350) {
     lastNote = t;
     spawnNote();
-    stage.classList.remove("thump");
-    void stage.offsetWidth;
-    stage.classList.add("thump");
   }
   $("bar").style.width = audio.duration ? (audio.currentTime / audio.duration) * 100 + "%" : "0";
 }
@@ -140,10 +126,10 @@ audio.addEventListener("play", () => {
 audio.addEventListener("pause", () => {
   stage.classList.remove("singing");
   playBtn.textContent = "▶ Play";
-  setMouth(0);
-  holdR.style.transform = "";
+  if (!audio.ended) Spud.relax();
 });
 audio.addEventListener("ended", () => {
+  Spud.takeABow();
   playBtn.textContent = "↻ Play again";
   statusEl.textContent = "🥔👏 Encore? Share it, or make another one.";
 });
@@ -164,6 +150,7 @@ function showSong(s, { autoplay }) {
   $("download").href = s.audioUrl;
   $("download").setAttribute("download", s.title.replace(/[^\w\s-]/g, "").trim() + ".mp3");
   playBtn.textContent = "▶ Play";
+  Spud.setGenre(s.genre);
   if (autoplay) play();
 }
 
@@ -276,4 +263,4 @@ $("form").addEventListener("submit", async (e) => {
   }
 })();
 
-setMouth(0);
+Spud.relax();

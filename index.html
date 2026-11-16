@@ -38,27 +38,50 @@
             <circle class="spot" cx="70" cy="230" r="5"/>
             <circle class="spot" cx="180" cy="270" r="4"/>
             <circle class="spot" cx="120" cy="60" r="3.5"/>
-            <ellipse class="cheek" cx="88" cy="185" rx="18" ry="10"/>
-            <ellipse class="cheek" cx="212" cy="185" rx="18" ry="10"/>
+            <ellipse class="cheek" id="cheekL" cx="88" cy="185" rx="18" ry="10"/>
+            <ellipse class="cheek" id="cheekR" cx="212" cy="185" rx="18" ry="10"/>
             <g class="eye">
+              <clipPath id="eyeClipL"><ellipse cx="112" cy="135" rx="20" ry="24"/></clipPath>
               <ellipse cx="112" cy="135" rx="20" ry="24" fill="#fff"/>
               <g class="look">
                 <circle class="pupil" cx="115" cy="140" r="10"/>
                 <circle cx="119" cy="135" r="3.5" fill="#fff"/>
               </g>
+              <g clip-path="url(#eyeClipL)">
+                <g class="lid lid-top" id="lidTopL">
+                  <rect x="88" y="52" width="48" height="56" class="lid-skin"/>
+                  <path d="M90 108 Q112 112 134 108" class="lid-line"/>
+                </g>
+                <g class="lid lid-bottom" id="lidBotL">
+                  <rect x="88" y="162" width="48" height="56" class="lid-skin"/>
+                  <path d="M90 162 Q112 158 134 162" class="lid-line"/>
+                </g>
+              </g>
             </g>
             <g class="eye">
+              <clipPath id="eyeClipR"><ellipse cx="188" cy="135" rx="20" ry="24"/></clipPath>
               <ellipse cx="188" cy="135" rx="20" ry="24" fill="#fff"/>
               <g class="look">
                 <circle class="pupil" cx="185" cy="140" r="10"/>
                 <circle cx="189" cy="135" r="3.5" fill="#fff"/>
               </g>
+              <g clip-path="url(#eyeClipR)">
+                <g class="lid lid-top" id="lidTopR">
+                  <rect x="164" y="52" width="48" height="56" class="lid-skin"/>
+                  <path d="M166 108 Q188 112 210 108" class="lid-line"/>
+                </g>
+                <g class="lid lid-bottom" id="lidBotR">
+                  <rect x="164" y="162" width="48" height="56" class="lid-skin"/>
+                  <path d="M166 162 Q188 158 210 162" class="lid-line"/>
+                </g>
+              </g>
             </g>
             <path class="brow" id="browL" d="M92 102 Q112 92 130 100"/>
             <path class="brow" id="browR" d="M170 100 Q188 92 208 102"/>
             <g transform="translate(150 210)">
-              <ellipse id="mouthOpen" class="mouth" cx="0" cy="0" rx="22" ry="4"/>
-              <ellipse id="tongue" class="tongue" cx="0" cy="3" rx="12" ry="0"/>
+              <clipPath id="mouthClip"><path id="mouthClipPath" d="M-22 0 Q0 0 22 0 Q0 3 -22 0Z"/></clipPath>
+              <path id="mouth" class="mouth" d="M-22 0 Q0 0 22 0 Q0 3 -22 0Z"/>
+              <ellipse id="tongue" class="tongue" cx="0" cy="12" rx="12" ry="0" clip-path="url(#mouthClip)"/>
             </g>
 
             <!-- right arm holding the mic up to the mouth -->
@@ -131,6 +154,7 @@
   <footer>Potatohead 🥔 Songs are made by AI and are original. Be kind to Spud.</footer>
 
   <audio id="audio" preload="auto" crossorigin="anonymous"></audio>
+  <script src="spud.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
