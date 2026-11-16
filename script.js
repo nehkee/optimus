@@ -1,103 +1,34 @@
-// Potatohead: Spud the singing potato.
-// A song is { title, lines: [string] }. A melody is composed from the words,
-// then Spud either sings the words (browser speech at musical pitches, with a
-// soft synth note under each word) or hums the tune.
+// Potatohead: Spud performs real AI-made songs and lip-syncs to them.
 
-const DEFAULT_SONG = {
-  title: "Spud's Theme",
-  lines: [
-    "I'm a little potato round and brown",
-    "I sing all day under the ground",
-    "Mash me fry me bake me too",
-    "I will still sing a song for you",
-  ],
-};
+const GENRES = [
+  ["pop", "🎶 Pop"],
+  ["rnb", "💜 R&B"],
+  ["rock", "🎸 Rock"],
+  ["hiphop", "🎤 Hip-hop"],
+  ["afrobeats", "🥁 Afrobeats"],
+  ["country", "🤠 Country"],
+  ["reggae", "🌴 Reggae"],
+  ["gospel", "🙌 Gospel"],
+  ["edm", "⚡ EDM"],
+  ["lullaby", "🌙 Lullaby"],
+];
+const GENRE_NAME = Object.fromEntries(GENRES);
 
-const MAX_LINES = 24;
-const MAX_CHARS = 1500;
-const BPM = 132;
-const BEAT = 60 / BPM;
-
-// ---------- elements ----------
 const $ = (id) => document.getElementById(id);
-const singBtn = $("sing");
-const shareBtn = $("share");
-const stage = document.querySelector(".stage");
+const audio = $("audio");
+const stage = $("stage");
 const mouth = $("mouthOpen");
 const tongue = $("tongue");
-const lyricEl = $("lyric");
-const titleEl = $("songTitle");
-const notesLayer = $("notes");
 const statusEl = $("status");
+const playBtn = $("play");
 
-let song = DEFAULT_SONG;
-let melody = [];
-let audio = null;
-let playing = false;
-let timers = [];
-let runId = 0;
+let genre = "rnb";
+let mode = "topic";
+let song = null;
 
-// ---------- melody ----------
-// C major pentatonic, C4..E5, as MIDI numbers.
-const SCALE = [60, 62, 64, 67, 69, 72, 74, 76];
-
-function hashString(s) {
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
-
-function rng(seed) {
-  let a = seed || 1;
-  return () => {
-    a |= 0; a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-function syllables(word) {
-  const w = word.toLowerCase().replace(/[^a-z]/g, "");
-  if (!w) return 1;
-  const groups = w.replace(/e$/, "").match(/[aeiouy]+/g);
-  return Math.max(1, groups ? groups.length : 1);
-}
-
-// Same lyrics always give the same tune, so shared links sound the same.
-function compose(lines) {
-  const rand = rng(hashString(lines.join("\n")));
-  const events = [];
-  let deg = 2; // start on E
-  lines.forEach((line, li) => {
-    const words = line.split(/\s+/).filter(Boolean);
-    const lastLine = li === lines.length - 1;
-    words.forEach((word, wi) => {
-      const lastWord = wi === words.length - 1;
-      if (lastWord) {
-        // Resolve phrases: G at the end of odd lines, C at the end of even lines / the song.
-        deg = lastLine || li % 2 === 1 ? (deg > 4 ? 5 : 0) : 3;
-      } else if (wi > 0 || li > 0) {
-        const step = [-2, -1, -1, 0, 1, 1, 2][Math.floor(rand() * 7)];
-        deg = Math.min(SCALE.length - 1, Math.max(0, deg + step));
-      }
-      const syl = syllables(word);
-      let beats = syl >= 3 ? 1.5 : 1;
-      if (word.replace(/[^a-z]/gi, "").length <= 2 && !lastWord && rand() < 0.5) beats = 0.5;
-      if (lastWord) beats = lastLine ? 3 : 2;
-      events.push({ word, line: li, index: wi, midi: SCALE[deg], beats });
-    });
-  });
-  return events;
-}
-
-const freq = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
-
-// ---------- face + effects ----------
+// ---------- face ----------
 function setMouth(open) {
+  open = Math.max(0, Math.min(1, open));
   mouth.setAttribute("ry", 4 + open * 26);
   mouth.setAttribute("rx", 22 - open * 4);
   tongue.setAttribute("ry", open * 9);
@@ -107,296 +38,238 @@ function setMouth(open) {
 function spawnNote() {
   const el = document.createElement("span");
   el.className = "note";
-  el.textContent = Math.random() < 0.5 ? "♪" : "♫";
-  el.style.left = 40 + Math.random() * 25 + "%";
-  el.style.top = "50%";
-  el.style.setProperty("--dx", (Math.random() * 160 - 80).toFixed(0) + "px");
+  el.textContent = ["♪", "♫", "♬"][Math.floor(Math.random() * 3)];
+  el.style.left = 35 + Math.random() * 30 + "%";
+  el.style.top = "45%";
+  el.style.setProperty("--dx", (Math.random() * 180 - 90).toFixed(0) + "px");
   el.style.setProperty("--rot", (Math.random() * 60 - 30).toFixed(0) + "deg");
-  notesLayer.appendChild(el);
+  $("notes").appendChild(el);
   setTimeout(() => el.remove(), 2000);
 }
 
-let shownLine = -1;
-function showWord(ev) {
-  if (ev.line !== shownLine) {
-    shownLine = ev.line;
-    lyricEl.innerHTML = "";
-    song.lines[ev.line].split(/\s+/).filter(Boolean).forEach((w, i) => {
-      const span = document.createElement("span");
-      span.className = "w";
-      span.textContent = (i ? " " : "") + w;
-      lyricEl.appendChild(span);
-    });
-  }
-  lyricEl.querySelectorAll(".w").forEach((s, i) => s.classList.toggle("on", i === ev.index));
-}
+// ---------- lip-sync ----------
+// The song's loudness in the voice range drives the mouth; spikes in the
+// low end (the beat) make notes fly. If the browser blocks reading the audio,
+// Spud mouths along to a steady rhythm instead.
+let ctx = null;
+let analyser = null;
+let freqData = null;
+let raf = 0;
+let level = 0;
+let bassAvg = 0;
+let lastNote = 0;
+let silentFrames = 0;
+let fakeSync = false;
 
-function onWord(ev) {
-  showWord(ev);
-  setMouth(Math.min(1, 0.4 + (ev.midi - 60) / 20));
-  spawnNote();
-}
-
-// ---------- sound ----------
-function synthNote(time, f, dur, level) {
-  const out = audio.createGain();
-  out.gain.setValueAtTime(0, time);
-  out.gain.linearRampToValueAtTime(level, time + 0.04);
-  out.gain.setValueAtTime(level, time + dur * 0.75);
-  out.gain.linearRampToValueAtTime(0, time + dur * 0.97);
-
-  const filter = audio.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = 900;
-  filter.Q.value = 1.2;
-
-  const vib = audio.createOscillator();
-  const vibGain = audio.createGain();
-  vib.frequency.value = 5.5;
-  vibGain.gain.value = f * 0.012;
-  vib.connect(vibGain);
-
-  [0, 6].forEach((detune) => {
-    const osc = audio.createOscillator();
-    osc.type = "sawtooth";
-    osc.frequency.value = f;
-    osc.detune.value = detune;
-    vibGain.connect(osc.frequency);
-    osc.connect(filter);
-    osc.start(time);
-    osc.stop(time + dur);
-  });
-
-  filter.connect(out);
-  out.connect(audio.destination);
-  vib.start(time);
-  vib.stop(time + dur);
-}
-
-function pickVoice() {
-  const voices = speechSynthesis.getVoices();
-  return (
-    voices.find((v) => /en[-_]US/i.test(v.lang) && /google|samantha|alex/i.test(v.name)) ||
-    voices.find((v) => /^en/i.test(v.lang)) ||
-    voices[0] ||
-    null
-  );
-}
-
-function canSpeak() {
-  return "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
-}
-
-function hum(id, from = 0) {
-  const start = audio.currentTime + 0.1;
-  let t = 0;
-  melody.slice(from).forEach((ev) => {
-    const dur = ev.beats * BEAT;
-    synthNote(start + t, freq(ev.midi), dur, 0.22);
-    const ms = (t + 0.1) * 1000;
-    timers.push(setTimeout(() => id === runId && onWord(ev), ms));
-    timers.push(setTimeout(() => id === runId && setMouth(0.1), ms + dur * 850));
-    t += dur;
-  });
-  timers.push(setTimeout(() => id === runId && stop(), (t + 0.6) * 1000));
-}
-
-function singWords(id) {
-  const voice = pickVoice();
-  let i = 0;
-  const next = () => {
-    if (id !== runId) return;
-    if (i >= melody.length) return stop();
-    const ev = melody[i++];
-    const u = new SpeechSynthesisUtterance(ev.word);
-    if (voice) u.voice = voice;
-    // Map the note to speech pitch (0..2) so the words rise and fall with the tune.
-    u.pitch = Math.max(0.1, Math.min(2, 0.6 + ((ev.midi - 60) / 16) * 1.3));
-    u.rate = ev.beats >= 2 ? 0.7 : ev.beats <= 0.5 ? 1.15 : 0.95;
-    u.volume = 1;
-    let done = false;
-    let started = false;
-    const finish = () => {
-      if (done) return;
-      done = true;
-      setMouth(0.1);
-      timers.push(setTimeout(next, ev.beats >= 2 ? 180 : 20));
-    };
-    u.onstart = () => {
-      started = true;
-      if (id !== runId) return;
-      onWord(ev);
-      synthNote(audio.currentTime, freq(ev.midi), Math.min(ev.beats * BEAT, 0.9), 0.07);
-    };
-    u.onend = () => (started ? finish() : fallback());
-    u.onerror = () => (started ? finish() : fallback());
-    // If this browser has no working speech voice, fall back to humming.
-    const fallback = () => {
-      if (started || done || id !== runId) return;
-      done = true;
-      speechSynthesis.cancel();
-      statusEl.textContent = "This browser can't sing words, so Spud is humming.";
-      hum(id, i - 1);
-    };
-    timers.push(setTimeout(fallback, 1500));
-    // Safety net in case a browser never fires onend.
-    timers.push(setTimeout(finish, 5000));
-    speechSynthesis.speak(u);
-  };
-  speechSynthesis.cancel();
-  next();
-}
-
-function stop() {
-  runId++;
-  timers.forEach(clearTimeout);
-  timers = [];
-  playing = false;
-  if (canSpeak()) speechSynthesis.cancel();
-  stage.classList.remove("singing");
-  singBtn.textContent = "▶ Make Spud sing";
-  setMouth(0);
-  shownLine = -1;
-  lyricEl.innerHTML = "&nbsp;";
-  if (audio) {
-    audio.close();
-    audio = null;
+function setupAnalyser() {
+  if (ctx) return;
+  try {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource(audio);
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.6;
+    src.connect(analyser);
+    analyser.connect(ctx.destination);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+  } catch {
+    fakeSync = true;
   }
 }
 
-function sing() {
-  if (playing) return stop();
-  const id = ++runId;
-  audio = new (window.AudioContext || window.webkitAudioContext)();
-  playing = true;
+function bandEnergy(lowHz, highHz) {
+  const binHz = ctx.sampleRate / analyser.fftSize;
+  const a = Math.floor(lowHz / binHz);
+  const b = Math.min(freqData.length - 1, Math.ceil(highHz / binHz));
+  let sum = 0;
+  for (let i = a; i <= b; i++) sum += freqData[i];
+  return sum / ((b - a + 1) * 255);
+}
+
+function frame(t) {
+  raf = requestAnimationFrame(frame);
+  if (audio.paused) return;
+  let voice;
+  let bass;
+  if (!fakeSync && analyser) {
+    analyser.getByteFrequencyData(freqData);
+    voice = bandEnergy(300, 3000);
+    bass = bandEnergy(40, 160);
+    // All zeros while playing = the browser won't let us read this audio.
+    silentFrames = voice + bass === 0 ? silentFrames + 1 : 0;
+    if (silentFrames > 90) fakeSync = true;
+  } else {
+    const beat = (t / 1000) * 2; // ~120 BPM
+    voice = 0.35 + 0.3 * Math.abs(Math.sin(beat * Math.PI * 1.5)) * (Math.sin(t / 900) > -0.6 ? 1 : 0.2);
+    bass = beat % 1 < 0.08 ? 0.9 : 0.2;
+  }
+  level += ((voice - 0.12) * 2.6 - level) * 0.45;
+  setMouth(level);
+  bassAvg = bassAvg * 0.95 + bass * 0.05;
+  if (bass > bassAvg * 1.25 && bass > 0.35 && t - lastNote > 350) {
+    lastNote = t;
+    spawnNote();
+    stage.classList.remove("thump");
+    void stage.offsetWidth;
+    stage.classList.add("thump");
+  }
+  $("bar").style.width = audio.duration ? (audio.currentTime / audio.duration) * 100 + "%" : "0";
+}
+
+// ---------- playback ----------
+async function play() {
+  if (!song) return;
+  setupAnalyser();
+  if (ctx && ctx.state === "suspended") await ctx.resume();
+  try {
+    await audio.play();
+  } catch {
+    statusEl.textContent = "Tap play again. Your browser blocked the sound.";
+  }
+}
+
+audio.addEventListener("play", () => {
   stage.classList.add("singing");
-  singBtn.textContent = "■ Stop";
-  const mode = document.querySelector('input[name="voice"]:checked').value;
-  if (mode === "words" && canSpeak()) singWords(id);
-  else hum(id);
+  playBtn.textContent = "⏸ Pause";
+  cancelAnimationFrame(raf);
+  raf = requestAnimationFrame(frame);
+});
+audio.addEventListener("pause", () => {
+  stage.classList.remove("singing");
+  playBtn.textContent = "▶ Play";
+  setMouth(0);
+});
+audio.addEventListener("ended", () => {
+  playBtn.textContent = "↻ Play again";
+  statusEl.textContent = "🥔👏 Encore? Share it, or make another one.";
+});
+audio.addEventListener("error", () => {
+  if (song) statusEl.textContent = "Spud couldn't load that song. Try again later.";
+});
+
+playBtn.addEventListener("click", () => (audio.paused ? play() : audio.pause()));
+
+function showSong(s, { autoplay }) {
+  song = s;
+  audio.pause();
+  audio.src = s.audioUrl;
+  $("now").hidden = false;
+  $("songTitle").textContent = "“" + s.title + "”";
+  $("songGenre").textContent = GENRE_NAME[s.genre] || "";
+  $("lyrics").textContent = (s.lyrics || "").trim() || "Spud made these up on the spot.";
+  $("download").href = s.audioUrl;
+  $("download").setAttribute("download", s.title.replace(/[^\w\s-]/g, "").trim() + ".mp3");
+  playBtn.textContent = "▶ Play";
+  if (autoplay) play();
 }
 
-// ---------- loading songs ----------
-function cleanLines(text) {
-  return text
-    .slice(0, MAX_CHARS)
-    .split(/\r?\n/)
-    .map((l) => l.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
-    .slice(0, MAX_LINES);
-}
-
-function loadSong(s, { autoplay = false, shareable = true } = {}) {
-  stop();
-  song = { title: (s.title || "Untitled").slice(0, 60), lines: s.lines };
-  melody = compose(song.lines);
-  titleEl.textContent = "“" + song.title + "”";
-  shareBtn.hidden = !shareable;
-  if (autoplay) sing();
-}
-
-// Share links carry the whole song in the URL, so no database is needed.
-function encodeSong(s) {
-  const bytes = new TextEncoder().encode(JSON.stringify({ t: s.title, l: s.lines }));
-  let bin = "";
-  bytes.forEach((b) => (bin += String.fromCharCode(b)));
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function decodeSong(str) {
-  const b64 = str.replace(/-/g, "+").replace(/_/g, "/");
-  const bin = atob(b64);
-  const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
-  const obj = JSON.parse(new TextDecoder().decode(bytes));
-  const lines = cleanLines((obj.l || []).join("\n"));
-  if (!lines.length) throw new Error("empty");
-  return { title: String(obj.t || "A song for you"), lines };
-}
-
-shareBtn.addEventListener("click", async () => {
-  const url = location.origin + location.pathname + "#song=" + encodeSong(song);
-  history.replaceState(null, "", url);
+// ---------- share ----------
+$("share").addEventListener("click", async () => {
+  if (!song) return;
+  const url = location.origin + "/?s=" + song.id;
   try {
     if (navigator.share) {
-      await navigator.share({ title: "Spud sings “" + song.title + "”", url });
+      await navigator.share({ title: "Spud sings “" + song.title + "” 🥔🎤", url });
     } else {
       await navigator.clipboard.writeText(url);
       statusEl.textContent = "Link copied! Send it to someone.";
     }
   } catch {
-    statusEl.textContent = "Copy this link from the address bar to share.";
+    statusEl.textContent = "Share this link: " + url;
   }
 });
 
-// ---------- tabs ----------
-const tabs = [
-  [$("tabAi"), $("paneAi")],
-  [$("tabMine"), $("paneMine")],
-];
-tabs.forEach(([tab, pane]) =>
-  tab.addEventListener("click", () => {
-    tabs.forEach(([t, p]) => {
-      t.setAttribute("aria-selected", String(t === tab));
-      p.hidden = p !== pane;
-    });
-  })
-);
-
-// ---------- "I write it" ----------
-$("paneMine").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const lines = cleanLines($("myLyrics").value);
-  if (!lines.length) return;
-  statusEl.textContent = "Spud learned your song!";
-  loadSong({ title: $("myTitle").value.trim() || "My Song", lines }, { autoplay: true });
-  window.scrollTo({ top: 0, behavior: "smooth" });
+// ---------- form ----------
+const chips = $("genres");
+GENRES.forEach(([key, label]) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "chip";
+  b.textContent = label;
+  b.setAttribute("aria-pressed", String(key === genre));
+  b.addEventListener("click", () => {
+    genre = key;
+    chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
+  });
+  chips.appendChild(b);
 });
 
-// ---------- "Spud writes it" (AI) ----------
-$("paneAi").addEventListener("submit", async (e) => {
+function setMode(m) {
+  mode = m;
+  $("tabTopic").setAttribute("aria-selected", String(m === "topic"));
+  $("tabLyrics").setAttribute("aria-selected", String(m === "lyrics"));
+  $("paneTopic").hidden = m !== "topic";
+  $("paneLyrics").hidden = m !== "lyrics";
+}
+$("tabTopic").addEventListener("click", () => setMode("topic"));
+$("tabLyrics").addEventListener("click", () => setMode("lyrics"));
+
+const WAITING = [
+  "Spud is warming up its vocal cords…",
+  "The band is tuning up…",
+  "Laying down the beat…",
+  "Spud is in the recording booth…",
+  "Adding a little potato magic…",
+  "Mixing and mastering…",
+];
+
+$("form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const topic = $("topic").value.trim();
-  if (!topic) return;
-  const btn = $("writeBtn");
-  btn.disabled = true;
-  btn.textContent = "Writing…";
-  statusEl.textContent = "Spud is writing a song about " + topic + "…";
+  const body = { genre };
+  if (mode === "topic") {
+    body.topic = $("topic").value.trim();
+    if (!body.topic) return $("topic").focus();
+  } else {
+    body.lyrics = $("myLyrics").value.trim();
+    body.title = $("title").value.trim();
+    if (!body.lyrics) return $("myLyrics").focus();
+  }
+
+  const go = $("go");
+  go.disabled = true;
+  go.textContent = "🎙️ Recording…";
+  stage.classList.add("working");
+  audio.pause();
+  let w = 0;
+  statusEl.textContent = WAITING[0];
+  const ticker = setInterval(() => (statusEl.textContent = WAITING[++w % WAITING.length]), 6000);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
   try {
     const res = await fetch("/api/song", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic }),
+      body: JSON.stringify(body),
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || "Spud lost its voice. Try again later.");
-    const lines = cleanLines((data.lines || []).join("\n"));
-    if (!lines.length) throw new Error("Spud couldn't think of anything. Try another topic.");
-    statusEl.textContent = "Here's Spud's new song!";
-    loadSong({ title: data.title, lines }, { autoplay: true });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (!res.ok || !data.audioUrl) throw new Error(data.error || "Spud lost its voice. Try again in a moment.");
+    statusEl.textContent = "🔥 Spud's new track is ready!";
+    history.replaceState(null, "", "/?s=" + data.id);
+    showSong(data, { autoplay: true });
   } catch (err) {
     statusEl.textContent = err.message;
   } finally {
-    btn.disabled = false;
-    btn.textContent = "Write it";
+    clearInterval(ticker);
+    stage.classList.remove("working");
+    go.disabled = false;
+    go.textContent = "🎤 Make Spud sing";
   }
 });
 
-// ---------- start ----------
-singBtn.addEventListener("click", sing);
-if (canSpeak()) speechSynthesis.getVoices(); // warm up the voice list
-else document.querySelector('input[value="hum"]').checked = true;
-
-const m = location.hash.match(/song=([A-Za-z0-9_-]+)/);
-let loaded = false;
-if (m) {
+// ---------- shared links ----------
+(async () => {
+  const id = new URLSearchParams(location.search).get("s");
+  if (!id) return;
+  statusEl.textContent = "Loading a song someone sent you…";
   try {
-    loadSong(decodeSong(m[1]));
-    statusEl.textContent = "Someone sent you a song! Press play.";
-    loaded = true;
-  } catch {
-    statusEl.textContent = "That song link looks broken, so here's Spud's theme.";
+    const res = await fetch("/api/song?id=" + encodeURIComponent(id));
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    showSong(data, { autoplay: false });
+    statusEl.textContent = "🎁 Someone sent you a Spud song! Press play.";
+  } catch (err) {
+    statusEl.textContent = (err && err.message) || "That song link looks broken.";
   }
-}
-if (!loaded) loadSong(DEFAULT_SONG, { shareable: false });
+})();
+
 setMouth(0);

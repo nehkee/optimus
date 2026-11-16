@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Potatohead</title>
-  <meta name="description" content="Spud, the singing potato. Give Spud a topic or your own lyrics and hear it sing.">
-  <meta property="og:title" content="Spud the singing potato 🥔">
-  <meta property="og:description" content="Give Spud a topic or your own lyrics and hear it sing.">
+  <meta name="description" content="Spud, the singing potato. Pick a genre, give Spud a topic or your lyrics, and hear a real song.">
+  <meta property="og:title" content="Spud the singing potato 🥔🎤">
+  <meta property="og:description" content="Pick a genre, give Spud a topic or your lyrics, and hear a real song.">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main>
     <h1>Potatohead</h1>
-    <p class="tagline">Meet Spud. Spud sings whatever you want.</p>
+    <p class="tagline">Spud sings anything. R&amp;B, rock, Afrobeats, you name it.</p>
 
-    <div class="stage">
+    <div class="stage" id="stage">
+      <div class="lights" aria-hidden="true"></div>
       <div class="notes" id="notes" aria-hidden="true"></div>
       <svg id="potato" viewBox="0 0 300 340" role="img" aria-label="Spud, a cartoon potato with big eyes and a singing mouth">
         <ellipse cx="150" cy="320" rx="95" ry="12" class="shadow"/>
@@ -44,50 +45,65 @@
             <ellipse id="mouthOpen" class="mouth" cx="0" cy="0" rx="22" ry="4"/>
             <ellipse id="tongue" class="tongue" cx="0" cy="3" rx="12" ry="0"/>
           </g>
+          <!-- microphone -->
+          <g class="mic" transform="translate(196 236) rotate(-35)">
+            <rect x="-4" y="0" width="8" height="46" rx="3" fill="#2b2b2b"/>
+            <circle cx="0" cy="-6" r="13" fill="#555"/>
+            <circle cx="0" cy="-6" r="13" fill="none" stroke="#999" stroke-width="2" stroke-dasharray="3 3"/>
+          </g>
         </g>
       </svg>
+    </div>
+
+    <section class="now" id="now" hidden>
       <p class="song-title" id="songTitle"></p>
-      <p class="lyric" id="lyric" aria-live="polite">&nbsp;</p>
-    </div>
+      <p class="song-genre" id="songGenre"></p>
+      <div class="controls">
+        <button id="play" type="button" class="primary">▶ Play</button>
+        <button id="share" type="button" class="secondary">🔗 Share</button>
+        <a id="download" class="secondary btnlink" download>⬇ Save</a>
+      </div>
+      <div class="progress" aria-hidden="true"><div id="bar"></div></div>
+      <details class="lyrics-box" id="lyricsBox">
+        <summary>Lyrics</summary>
+        <pre id="lyrics"></pre>
+      </details>
+    </section>
 
-    <div class="controls">
-      <button id="sing" type="button" class="primary">▶ Make Spud sing</button>
-      <button id="share" type="button" class="secondary" hidden>🔗 Share this song</button>
-    </div>
-    <div class="voice" role="radiogroup" aria-label="Spud's voice">
-      <label><input type="radio" name="voice" value="words" checked> Sing the words</label>
-      <label><input type="radio" name="voice" value="hum"> Just hum the tune</label>
-    </div>
-    <p class="hint" id="status">Turn your sound on.</p>
+    <p class="status" id="status" aria-live="polite">Pick a style, tell Spud what to sing, and hit the mic.</p>
 
-    <section class="panel">
+    <form class="panel" id="form">
+      <fieldset class="genres">
+        <legend>Style</legend>
+        <div class="chips" id="genres"></div>
+      </fieldset>
+
       <div class="tabs" role="tablist">
-        <button role="tab" id="tabAi" aria-selected="true" aria-controls="paneAi">🥔 Spud writes it</button>
-        <button role="tab" id="tabMine" aria-selected="false" aria-controls="paneMine">✍️ I write it</button>
+        <button type="button" role="tab" id="tabTopic" aria-selected="true">🥔 Spud writes it</button>
+        <button type="button" role="tab" id="tabLyrics" aria-selected="false">✍️ My lyrics</button>
       </div>
 
-      <form id="paneAi" role="tabpanel" aria-labelledby="tabAi">
-        <label for="topic">Potato, sing me a song about…</label>
-        <div class="row">
-          <input id="topic" maxlength="120" placeholder="tomatoes, my cat, Monday mornings…" autocomplete="off" required>
-          <button type="submit" class="primary" id="writeBtn">Write it</button>
-        </div>
-        <p class="small">Spud writes an original song with AI. Spud won't copy famous songs, but it can write in their style.</p>
-      </form>
+      <div id="paneTopic">
+        <label for="topic">Spud, sing me a song about…</label>
+        <input id="topic" maxlength="120" placeholder="tomatoes, my cat, Monday mornings…" autocomplete="off">
+      </div>
 
-      <form id="paneMine" role="tabpanel" aria-labelledby="tabMine" hidden>
-        <label for="myTitle">Song title</label>
-        <input id="myTitle" maxlength="60" placeholder="My Great Song">
-        <label for="myLyrics">Lyrics (one line per line)</label>
-        <textarea id="myLyrics" rows="6" maxlength="1500" placeholder="Happy birthday dear Sarah&#10;you are older than a potato" required></textarea>
-        <button type="submit" class="primary">Teach Spud this song</button>
-        <p class="small">Please only use lyrics you wrote yourself.</p>
-      </form>
-    </section>
+      <div id="paneLyrics" hidden>
+        <label for="title">Song title</label>
+        <input id="title" maxlength="60" placeholder="Happy Birthday, Sarah">
+        <label for="myLyrics">Your lyrics</label>
+        <textarea id="myLyrics" rows="7" maxlength="1200" placeholder="[Verse]&#10;Sarah you're another year old&#10;...&#10;&#10;[Chorus]&#10;..."></textarea>
+        <p class="small">Tip: mark parts with [Verse] and [Chorus]. Use your own words; Spud can't sing famous songs.</p>
+      </div>
+
+      <button type="submit" class="primary big" id="go">🎤 Make Spud sing</button>
+      <p class="small">Real songs with vocals and a beat take about 20–60 seconds to make.</p>
+    </form>
   </main>
 
-  <footer>Potatohead 🥔 Songs are made up on the spot. Be kind to Spud.</footer>
+  <footer>Potatohead 🥔 Songs are made by AI and are original. Be kind to Spud.</footer>
 
+  <audio id="audio" preload="auto" crossorigin="anonymous"></audio>
   <script src="script.js"></script>
 </body>
 </html>
